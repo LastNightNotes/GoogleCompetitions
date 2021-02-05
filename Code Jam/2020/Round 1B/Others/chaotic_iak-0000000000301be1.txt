@@ -1,0 +1,130 @@
+"""
+Google Code Jam 2020 Round 1B Problem B
+
+Author  : chaotic_iak
+Language: Python 3.8.2
+"""
+
+################################################### SOLUTION
+
+def initialize_solution():
+    pass
+
+class HitCenter(Exception):
+    pass
+
+def call(x, y):
+    write([x, y])
+    #xs, ys, r = -5, -5, 999999995
+    #if x == xs and y == ys:
+    #    print("CENTER")
+    #    raise HitCenter
+    #res = (x-xs)**2 + (y-ys)**2 <= r**2
+    #print("HIT" if res else "MISS")
+    #return res
+    response = read(callback=str, split=False)
+    if response == "CENTER": raise HitCenter
+    return response == "HIT"
+
+def main():
+    try:
+        for x in range(-4,5):
+            for y in range(-4,5):
+                if call(x*200000000, y*200000000): break
+            else:
+                continue
+            break
+        x *= 200000000
+        y *= 200000000
+
+        lo = -1000000000
+        hi = x
+        while lo != hi:
+            mi = (lo+hi)//2
+            res = call(mi, y)
+            if res:
+                hi = mi
+            else:
+                lo = mi+1
+        xlo = lo
+        lo = x
+        hi = 1000000001
+        while lo != hi:
+            mi = (lo+hi)//2
+            res = call(mi, y)
+            if res:
+                lo = mi+1
+            else:
+                hi = mi
+        xhi = lo-1
+        xmi = (xlo+xhi)//2
+
+        lo = -1000000000
+        hi = y
+        while lo != hi:
+            mi = (lo+hi)//2
+            res = call(xmi, mi)
+            if res:
+                hi = mi
+            else:
+                lo = mi+1
+        ylo = lo
+        lo = y
+        hi = 1000000001
+        while lo != hi:
+            mi = (lo+hi)//2
+            res = call(xmi, mi)
+            if res:
+                lo = mi+1
+            else:
+                hi = mi
+        yhi = lo-1
+        ymi = (ylo+yhi)//2
+        call(xmi, ymi)
+        
+    except HitCenter:
+        pass
+
+########################################## PROBLEM CONSTANTS
+
+OUTPUT_PREFIX = ""
+INTERACTIVE = True
+INTERACTIVE_WRONG_ANSWER = "WRONG"
+
+#################################################### HELPERS
+
+import sys
+
+def read(callback=int, split=True):
+    ipt = input().strip()
+    if INTERACTIVE and ipt == INTERACTIVE_WRONG_ANSWER:
+        sys.exit()
+    if split:
+        return list(map(callback, ipt.split()))
+    else:
+        return callback(ipt)
+
+def write(value, end="\n"):
+    if value is None: return
+    try:
+        if not isinstance(value, str):
+            value = " ".join(map(str, value))
+    except:
+        pass
+    print(value, end=end)
+    if INTERACTIVE:
+        sys.stdout.flush()
+
+def solve_testcase():
+    result = main()
+    if result is not None:
+        write(result)
+
+if OUTPUT_PREFIX is None:
+    solve_testcase()
+else:
+    initialize_solution()
+    TOTAL_CASES, A, B = read()
+    for CASE_NUMBER in range(1, TOTAL_CASES+1):
+        write(OUTPUT_PREFIX.format(CASE_NUMBER), end="")
+        solve_testcase()

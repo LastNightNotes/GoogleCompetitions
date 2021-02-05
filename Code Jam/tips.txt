@@ -1,0 +1,5 @@
+Complexities
+*) list.pop() = O(1)  # removes last element
+*) list.pop(i) = O(N) # removes ith element
+*) list.index(i) = O(1)
+*) list.remove(i) = O(N)
