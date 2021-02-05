@@ -1,0 +1,467 @@
+<!doctype html>
+<html>
+
+<head>
+</head>
+
+<body>
+    <input type="file" onchange="readFile(this)" id="fileInput" />
+    <p id="message"></p>
+    <script>
+        var input;
+        var fileName;
+
+        function readFile(x) {
+            var file = x.files[0];
+            fileName = file.name.split(".")[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var contents = e.target.result;
+                    //console.log(contents);
+
+                    input = contents.trim().split("\n");
+                    document.querySelector("#message").innerHTML = "Processing... Please Wait!";
+                    run();
+
+                }
+                reader.readAsText(file);
+            } else {
+                alert("Failed to load file!");
+            }
+
+        }
+        var dataObj;
+        var keysArr = [];
+
+        function run() {
+            var numberOfFiles = input[0].split(" ")[0];
+            var targetFiles = input[0].split(" ")[1];
+            var nummberOfServers = input[0].split(" ")[2];
+
+            dataObj = {
+
+            };
+
+
+            for (x = 1; x < numberOfFiles * 2 + 1; x += 2) {
+                dataObj[input[x].split(" ")[0]] = {
+                    compTime: parseInt(input[x].split(" ")[1]),
+                    repTime: parseInt(input[x].split(" ")[2]),
+                    dependencies: input[x + 1].split(" ").splice(1, input[x + 1].split(" ")[0]),
+                    startTime: {}
+
+                }
+
+
+            }
+
+            var targetObj = [];
+            var startingIndexOfTargetFiles = input.length - targetFiles;
+            for (x = startingIndexOfTargetFiles; x < (input.length); x++) {
+
+                targetObj.push(input[x].split(" ")[0]);
+                dataObj[input[x].split(" ")[0]].deadline = parseInt(input[x].split(" ")[1]);
+
+                dataObj[input[x].split(" ")[0]].points = parseInt(input[x].split(" ")[2]);
+
+
+            }
+            var dep;
+            console.log(targetObj, dataObj);
+
+            function getDependecies(x) {
+                if (dataObj[x].dependencies.length > 0) {
+                    dataObj[x].dependencies.forEach(y => {
+                        getDependecies(y);
+                    });
+                    if (!dep.includes(x)) {
+                        dep.push(x);
+                    }
+                } else {
+                    if (!dep.includes(x)) {
+                        dep.push(x);
+                    }
+
+                }
+
+
+                return dep;
+
+            }
+
+            console.log(targetObj);
+            targetObj.forEach(x => {
+                if (dataObj[x].dependencies.length == 1) {
+                    console.log(x + " require only one server");
+                } else if (dataObj[x].dependencies.length == 2) {
+                    console.log(x + " has following possible ways : ");
+                    console.log(dataObj[x].dependencies)
+                    dataObj[x].dependencies.forEach(z => {
+                        var y = [z];
+                        console.log(y);
+                    });
+                }
+
+            })
+
+
+
+            var unit = 1000;
+            var score = 0;
+            var servers = {};
+            var fileIndex = 0,
+                depError = false;
+            var targetObjLength = targetObj.length;
+            var d, delArray, filesReplicated = [],
+                completedTargeteFiles = [];
+
+            //jadoo files that are compiled on another server but not replicated on other servers yet.
+            var jadoo = {};
+
+            for (var x = 0; x < nummberOfServers; x++) {
+
+                servers["s" + x] = {
+                    time: 0,
+                    depen: [],
+                    areDepenResolved: function(y, x) {
+                        resolve = false;
+                        dep = [];
+                        if (this.depen.length > 0) {
+                            d = this.depen;
+                        } else {
+                            d = getDependecies(x);
+                            d.pop();
+                            keysArr = Object.keys(dataObj);
+                            d.sort(function(a, b) {
+                                return keysArr.indexOf(a) - keysArr.indexOf(b)
+                            });
+
+                        }
+
+
+                        delArray = [];
+                        jadoo = {};
+                        d.forEach((z, t) => {
+                            //console.log(dataObj[z].startTime,y);
+                            keysArr = Object.keys(dataObj[z].startTime);
+                            if (keysArr.length > 0) {
+                                if (keysArr.includes(y)) {
+                                    delArray.push(z);
+                                } else {
+                                    keysArr.forEach(j => {
+                                        if (dataObj[z].startTime[j] + dataObj[z].compTime + dataObj[z].repTime < time) {
+
+                                            delArray.push(z);
+                                        } else if (dataObj[z].startTime[j] + dataObj[z].compTime < time) {
+
+                                            jadoo[z] = {};
+                                            jadoo[z]["totalTime"] = dataObj[z].startTime[j] + dataObj[z].compTime + dataObj[z].repTime;
+                                        }
+                                    })
+
+                                }
+                            }
+
+                        });
+                        if (delArray.length > 0) {
+                            delArray.forEach(x => {
+                                d.splice(d.indexOf(x), 1);
+                            })
+                        }
+                        keysArr = Object.keys(jadoo);
+                        delArray = [];
+                        if (keysArr.length > 0 && keysArr.length < d.length) {
+                            //there are more depencies left than in jadoo Array
+
+                            d.forEach(h => {
+                                if (!keysArr.includes(h)) {
+                                    if (jadoo[keysArr[0]].totalTime < dataObj[h].compTime + time) {
+                                        //remove elements of Jadoo Array in d Array
+                                        delArray.push(keysArr[0]);
+                                    }
+
+                                }
+                            })
+
+                        }
+                        if (delArray.length > 0) {
+                            delArray.forEach(x => {
+                                d.splice(d.indexOf(x), 1);
+                            })
+                        }
+                        this.depen = d;
+                        return d.length == 0;
+                    },
+                    startCompile: function(z, y) {
+                        if (this.areDepenResolved(z, y)) {
+                            console.log(time + " " + y + " start on server " + z);
+
+                            time += dataObj[y].compTime;
+                            dataObj[y].startTime[z] = time;
+                            console.log(time + " " + y + " compiled on server " + z);
+                            if (time <= dataObj[y].deadline) {
+                                score += dataObj[y].deadline - time;
+                                score += dataObj[y].points;
+                                //console.log(score);
+                            }
+                            completedTargeteFiles.push(y);
+                            this.time = time;
+                        } else {
+
+                            var d = this.depen;
+                            console.log(d);
+                            depError = false;
+                            console.log(time + " " + d[0] + " dependency start on server " + z);
+                            if (dataObj[d[0]].dependencies > 0) {
+                                dataObj[d[0]].dependencies.forEach(w => {
+                                    if (!dataObj[w].compiled.includes(z)) {
+                                        console.log("Error");
+                                        depError = true;
+                                    }
+                                })
+                            }
+                            if (!depError) {
+                                dataObj[d[0]].startTime[z] = time;
+                                time += dataObj[d[0]].compTime;
+                                console.log(time + " " + d[0] + " dependency compiled on server " + z);
+
+                            }
+                            servers[z].startCompile(z, y);
+                        }
+                    }
+                }
+            }
+
+            var action;
+            var time = 0;
+            var loopNo = 0;
+var t;
+
+            function startCompiling() {
+
+                for (x in servers) {
+                    if (fileIndex < targetObjLength) {
+                        
+                        t = servers[x].time;
+                        time = t; 
+                        servers[x].depen = [];
+                        servers[x].startCompile(x, targetObj[fileIndex]);
+                        fileIndex++;
+
+                        if (fileIndex % Object.keys(servers).length == 0) {
+                            startCompiling();
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+             startCompiling();
+            console.log(servers);
+            console.log("-----The END--------");
+            console.log("Score = " + score);
+            document.querySelector("#message").innerHTML = "Done :)";
+        }
+
+        function run1() {
+            var numberOfFiles = input[0].split(" ")[0];
+            var targetFiles = input[0].split(" ")[1];
+            var nummberOfServers = input[0].split(" ")[2];
+
+            dataObj = {
+
+            };
+
+
+            for (x = 1; x < numberOfFiles * 2 + 1; x += 2) {
+                dataObj[input[x].split(" ")[0]] = {
+                    compTime: parseInt(input[x].split(" ")[1]),
+                    repTime: parseInt(input[x].split(" ")[2]),
+                    dependencies: input[x + 1].split(" ").splice(1, input[x + 1].split(" ")[0]).sort(),
+                    compiled: [],
+                    startTime: {}
+
+                }
+
+
+            }
+
+            var targetObj = [];
+            var lastElementIndex = input.length - 1;
+            for (x = lastElementIndex; x > (lastElementIndex - targetFiles); x--) {
+                targetObj.push(input[x].split(" ")[0]);
+                dataObj[input[x].split(" ")[0]].deadline = parseInt(input[x].split(" ")[1]);
+
+                dataObj[input[x].split(" ")[0]].points = parseInt(input[x].split(" ")[2]);
+
+
+            }
+            var dep;
+            //console.log(dataObj);
+            function getDependecies(x) {
+                if (dataObj[x].dependencies.length > 0) {
+                    dataObj[x].dependencies.forEach(y => {
+                        getDependecies(y);
+                    });
+                    if (!dep.includes(x)) {
+                        dep.push(x);
+                    }
+                } else {
+                    if (!dep.includes(x)) {
+                        dep.push(x);
+                    }
+
+                }
+                return dep.sort();
+
+            }
+
+            targetObj.sort();
+            var unit = 1000;
+            var score = 0;
+            var servers = {};
+            var fileIndex = 0,
+                depError = false;
+            var targetObjLength = targetObj.length;
+            var d, delArray, filesReplicated = [],
+                completedTargeteFiles = [];
+            var keysArr = [];
+            //jadoo files that are compiled on another server but not replicated on other servers yet.
+            var jadoo = {};
+
+            for (var x = 0; x < nummberOfServers; x++) {
+
+                servers["s" + x] = {
+                    time: 0,
+                    depen: [],
+                    areDepenResolved: function(y, x) {
+                        resolve = false;
+                        dep = [];
+                        d = getDependecies(x);
+                        d.pop();
+                        delArray = [];
+                        jadoo = {};
+                        d.forEach((z, t) => {
+                            //console.log(dataObj[z].startTime,y);
+                            keysArr = Object.keys(dataObj[z].startTime);
+                            if (keysArr.length > 0) {
+                                if (keysArr.includes(y)) {
+                                    delArray.push(z);
+                                } else {
+                                    keysArr.forEach(j => {
+                                        if (dataObj[z].startTime[j] + dataObj[z].compTime + dataObj[z].repTime < time) {
+
+                                            delArray.push(z);
+                                        } else if (dataObj[z].startTime[j] + dataObj[z].compTime < time) {
+
+                                            jadoo[z] = {};
+                                            jadoo[z]["totalTime"] = dataObj[z].startTime[j] + dataObj[z].compTime + dataObj[z].repTime;
+                                        }
+                                    })
+
+                                }
+                            }
+
+                        });
+                        if (delArray.length > 0) {
+                            delArray.forEach(x => {
+                                d.splice(d.indexOf(x), 1);
+                            })
+                        }
+                        keysArr = Object.keys(jadoo);
+                        delArray = [];
+                        if (keysArr.length > 0 && keysArr.length < d.length) {
+                            //there are more depencies left than in jadoo Array
+
+                            d.forEach(h => {
+                                if (!keysArr.includes(h)) {
+                                    if (jadoo[keysArr[0]].totalTime < dataObj[h].compTime + time) {
+                                        //remove elements of Jadoo Array in d Array
+                                        delArray.push(keysArr[0]);
+                                    }
+
+                                }
+                            })
+
+                        }
+                        if (delArray.length > 0) {
+                            delArray.forEach(x => {
+                                d.splice(d.indexOf(x), 1);
+                            })
+                        }
+                        this.depen = d;
+                        return d.length == 0;
+                    },
+                    startCompile: function(z, y) {
+                        if (this.areDepenResolved(z, y)) {
+                            console.log(time + " " + y + " start on server " + z);
+
+                            time += dataObj[y].compTime;
+                            dataObj[y].startTime[z] = time;
+                            console.log(time + " " + y + " compiled on server " + z);
+                            if (time <= dataObj[y].deadline) {
+                                score += dataObj[y].deadline - time;
+                                score += dataObj[y].points;
+                                //console.log(score);
+                            }
+                            completedTargeteFiles.push(y);
+                            this.time += time;
+                        } else {
+
+                            var d = this.depen;
+                            depError = false;
+                            console.log(time + " " + d[0] + " dependency start on server " + z);
+                            if (dataObj[d[0]].dependencies > 0) {
+                                dataObj[d[0]].dependencies.forEach(w => {
+                                    if (!dataObj[w].compiled.includes(z)) {
+                                        console.log("Error");
+                                        depError = true;
+                                    }
+                                })
+                            }
+                            if (!depError) {
+                                dataObj[d[0]].startTime[z] = time;
+                                time += dataObj[d[0]].compTime;
+                                console.log(time + " " + d[0] + " dependency compiled on server " + z);
+
+                            }
+                            servers[z].startCompile(z, y);
+                        }
+                    }
+                }
+            }
+
+            var action;
+            var time = 0;
+            var loopNo = 0;
+
+            function startCompiling() {
+
+                for (x in servers) {
+                    if (fileIndex < targetObjLength) {
+                        time = servers[x].time;
+                        servers[x].startCompile(x, targetObj[fileIndex]);
+                        fileIndex++;
+
+                        if (fileIndex % Object.keys(servers).length == 0) {
+                            startCompiling();
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            startCompiling();
+            console.log("-----The END--------");
+            console.log("Score = " + score);
+            document.querySelector("#message").innerHTML = "Done :)";
+        }
+        // run();
+
+    </script>
+</body>
+
+</html>

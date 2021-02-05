@@ -1,0 +1,196 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+
+    <style>
+
+
+
+    </style>
+    <title></title>
+</head>
+
+
+<body>
+
+    <input type="file" onchange="readFile(this)" id="fileInput" />
+    <p id="message"></p>
+    <script>
+        var input;
+        var fileName;
+
+        function readFile(x) {
+            var file = x.files[0];
+            fileName = file.name.split(".")[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var contents = e.target.result;
+                    //console.log(contents);
+
+                    input = contents.trim().split("\n");
+                    document.querySelector("#message").innerHTML = "Processing... Please Wait!";
+                    run();
+
+                }
+                reader.readAsText(file);
+            } else {
+                alert("Failed to load file!");
+            }
+
+        }
+
+        function run() {
+
+
+            var maximumNoOfSlices = parseInt(input[0].split(" ")[0]);
+            var arrayOfNumberOfSlice = [];
+            for (var x = 1; x < input.length; x++) {
+                input[x].split(" ").forEach(y => {
+                    arrayOfNumberOfSlice.push(parseInt(y));
+                })
+            }
+            //   console.log(arrayOfNumberOfSlice);
+
+            var numberOfFinalSlices = 0;
+            var selectedPizzas = [];
+            var diff1, diff2 = 0;
+            var bestSolution = false;
+            var index;
+            var nextSum = 0;
+            var x = arrayOfNumberOfSlice.length - 1;
+            var currentNoOfSlices = 0;
+            var diffArray = {};
+
+            while (x >= 0 && bestSolution == false) {
+
+
+                //console.log(x);
+                currentNoOfSlices = arrayOfNumberOfSlice[x];
+                diff1 = maximumNoOfSlices - currentNoOfSlices;
+                if (arrayOfNumberOfSlice.includes(diff1)) {
+
+                    bestSolution = true;
+                    console.log("sds");
+                    index = arrayOfNumberOfSlice.indexOf(diff1);
+                    numberOfFinalSlices = maximumNoOfSlices;
+                    //  console.log("Falss");
+                    selectedPizzas = [x, index];
+                    continue;
+                }
+                for (z in diffArray) {
+
+                    diff2 = z - currentNoOfSlices;
+                    //console.log(currentNoOfSlices);
+                    if (arrayOfNumberOfSlice.includes(diff2)) {
+
+                        index = arrayOfNumberOfSlice.indexOf(diff2);
+                        
+
+                        if (index < x) {
+
+                            selectedPizzas = [...diffArray[z].restElementsIndex, x, index];
+                            numberOfFinalSlices = diffArray[z].numberOfSlicesYet;
+                            numberOfFinalSlices += currentNoOfSlices + arrayOfNumberOfSlice[index];
+                            bestSolution = true;
+                          
+                      //      console.log(index, x, z, index != x, diffArray, numberOfFinalSlices, getSum(selectedPizzas), diffArray[z].restElementsIndex);
+                            break;
+                        }
+                    }
+                }
+
+                if (bestSolution == true) {
+                    continue;
+                }
+
+                if (diff1 > arrayOfNumberOfSlice[0] && diff1 < currentNoOfSlices) {
+                    diffArray[diff1] = {
+                        restElementsIndex: [x],
+                        numberOfSlicesYet: currentNoOfSlices
+                    }
+                }
+
+                nextSum = numberOfFinalSlices + currentNoOfSlices;
+
+                if (nextSum <= maximumNoOfSlices) {
+                    diff1 = maximumNoOfSlices - nextSum;
+                    
+                    numberOfFinalSlices = nextSum;
+                 //   console.log(diff1, numberOfFinalSlices, selectedPizzas);
+                    selectedPizzas.push(x);
+
+                    if (arrayOfNumberOfSlice.includes(diff1)) {
+                        index = arrayOfNumberOfSlice.indexOf(diff1);
+                        if (index < x) {
+                            bestSolution = true;
+
+                            numberOfFinalSlices += arrayOfNumberOfSlice[index];
+
+                            selectedPizzas.push(index);
+                     //       console.log(diff1, numberOfFinalSlices, getSum(selectedPizzas));
+                            continue;
+                        }
+
+                    }
+
+                    
+                    if (diff1 > arrayOfNumberOfSlice[0] && diff1 < currentNoOfSlices) {
+                    //    console.log(diff1, numberOfFinalSlices, selectedPizzas);
+                        diffArray[diff1] = {
+                            restElementsIndex: [...selectedPizzas],
+                            numberOfSlicesYet: numberOfFinalSlices
+                        }
+                     //   console.log(diffArray);
+                    }
+
+                }
+                x--;
+            }
+            function getSum(arr){
+                var s = 0;
+                arr.forEach(g => {
+                    s += arrayOfNumberOfSlice[g];
+                })
+                return s;
+            }
+
+            //  selectedPizzas.sort();
+            var lastArray = [];
+            var lastSum = 0;
+            selectedPizzas.forEach(w => {
+                if (!lastArray.includes(w)) {
+                    lastArray.push(w);
+                } else {
+                    console.log("SOmething Wrong");
+                }
+
+                lastSum += arrayOfNumberOfSlice[w];
+            })
+            //console.log(lastSum);
+           // console.log(diffArray);
+            console.log(numberOfFinalSlices + " / " + maximumNoOfSlices + "\n" + selectedPizzas.length + "\n" + selectedPizzas.join(" "));
+            var output = selectedPizzas.length + "\n" + selectedPizzas.join(" ");
+            output = output.replace(/\n/g, "%0D%0A");
+
+            //             var blob = new Blob([output], {
+            //                        type: "text/plain"
+            //                    });
+            //            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            //  a.href = url;
+            a.href = "data:text/plain," + output;
+            a.download = fileName + ".txt";
+            document.querySelector("#message").innerHTML = "Done :)";
+              a.click();
+            document.body.removeChild(a);
+        }
+
+    </script>
+</body>
+
+</html>
