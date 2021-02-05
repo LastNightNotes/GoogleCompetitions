@@ -1,0 +1,23 @@
+from collections import defaultdict
+for t in range(int(input())):
+  n = int(input())
+  ws = []
+  for i in range(n):
+    ws.append(input().strip())
+  count = defaultdict(int)
+  words = defaultdict(set)
+  sufs = lambda w: [w[i:] for i in range(len(w))]
+  for i, w in enumerate(ws):
+    for s in sufs(w):
+      count[s] += 1
+      words[s].add(i)
+  good = [s for s, x in count.items() if x > 1]
+  good.sort(key=len, reverse=True)
+  result = 0
+  used = set()
+  for s in good:
+    available = list(words[s] - used)
+    if len(available) > 1:
+      result += 2
+      used |= set(available[:2])
+  print('Case #%d: %d' % (t+1, result))
