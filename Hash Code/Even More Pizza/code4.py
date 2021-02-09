@@ -1,10 +1,12 @@
 import operator
 import math
-import numpy as np
-import pandas as pd
+import os
+# import numpy as np
+# import pandas as pd
 
 from functools import reduce
 files = ['a_example','a_test.txt', 'b_little_bit_of_everything.in', 'c_many_ingredients.in', 'd_many_pizzas.in', 'e_many_teams.in']
+files = ['a_test.txt']
 # files = files[4:]
 # files = files[:1]
 # A – Example 74 points
@@ -14,13 +16,23 @@ files = ['a_example','a_test.txt', 'b_little_bit_of_everything.in', 'c_many_ingr
 # E – Many teams 8,331,852 points
 # 626,735,796
 
+
+
+## POSSIBLE
+# B: 13,629
+# C: 710,355,943
+# D: 7,859,295
+# E: 10,674,444
+# Total: 723,907,454
+
+
 # a = RR
 # b = RN
 # C = NR
 # D = NR
 # e = code1.py
 for file in files:
-    with open(file) as f:
+    with open(os.getcwd() + '\\Hash Code\\Even More Pizza\\'  + file) as f:
         firstLine = f.readline()
         totalPizza, noOf2PersonTeam, noOf3PersonTeam, noOf4PersonTeam = list(map(int,firstLine.split()))
         teams = [2]*noOf2PersonTeam + [3]*noOf3PersonTeam + [4]*noOf4PersonTeam
@@ -85,7 +97,7 @@ for file in files:
             score += len(set(l))**2
             ans += "\n"
         print("Score:",file ,": ",score)
-        # print(ans)
+        print(ans)
         # data.to_html(file+".html")
         # print(data)
         with open("output_" + file, "w") as f2:
