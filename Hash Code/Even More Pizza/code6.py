@@ -46,6 +46,39 @@ for file in files:
             
             pizzas.append({"oIndex": i, "ing":x, "ingCount": int(y[0])})
             uniqueIng += x
+        possibleDeliveries = []
+        deliveries = []
+        uniqueIng = list(set(uniqueIng))
+
+        delivery = {
+            "pizzas": [pizzas[0]["oIndex"]],
+            "ings": pizzas[0]["ing"],
+            "ing_req": list(set(uniqueIng) - set(pizzas[0]["ing"])),
+            "packed": False
+            }
+        deliveries.append(delivery)
+        for pizza in pizzas[1:]:
+            state = True
+            for deliv in deliveries:
+                if not deliv["packed"]:
+                    if set(pizza["ing"]) <= set(deliv["ing_req"]):
+                        deliv["pizzas"] += [pizza["oIndex"]]
+                        deliv["ings"] += pizza["ing"]
+                        deliv["ing_req"] = list(set(deliv["ing_req"]) - set(pizza["ing"]))
+
+                        print("Check can pack")
+                        state = False
+                        break
+            if state:
+                delivery = {
+                "pizzas": [pizza["oIndex"]],
+                "ings": pizza["ing"],
+                "ing_req": list(set(uniqueIng) - set(pizza["ing"])),
+                "packed": False
+                }
+                deliveries.append(delivery)
+               
+        print(deliveries)
         if file != 'e_many_teams.in':  
             pizzas.sort(key=lambda x: x["ingCount"], reverse=True)
             maxIng = pizzas[0]["ingCount"]
@@ -74,7 +107,7 @@ for file in files:
         # print("Unique Ingredients", len(set(uniqueIng)), firstLine)
         if file not in  ["b_little_bit_of_everything.in",'e_many_teams.in' ]: 
             possibleDelivery = list(reversed(possibleDelivery))
-        print(possibleDelivery, sum(possibleDelivery))
+        # print(possibleDelivery, sum(possibleDelivery))
         ans = "" + str(len(possibleDelivery)) + "\n"
         i = 0
         j = len(pizzas) - 1
@@ -83,7 +116,7 @@ for file in files:
         if file == "b_little_bit_of_everything.in": param1 = 4
         # else: param1 = 500
         else: param1 = 100
-        param3 = len(set(uniqueIng))-minIng if file in ['c_many_ingredients.in', 'd_many_pizzas.in','a_test.txt'] else maxIng
+        param3 = len(set(uniqueIng)) if file in ['c_many_ingredients.in', 'd_many_pizzas.in','a_test.txt'] else maxIng
         
         for team in possibleDelivery:
             l = []
