@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from functools import reduce
-files = ['a_example', 'b_little_bit_of_everything.in', 'c_many_ingredients.in', 'd_many_pizzas.in', 'e_many_teams.in']
+files = ['a_example','a_test.txt', 'b_little_bit_of_everything.in', 'c_many_ingredients.in', 'd_many_pizzas.in', 'e_many_teams.in']
 # files = files[4:]
 # files = files[:1]
 # A – Example 74 points
