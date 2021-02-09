@@ -6,12 +6,12 @@ import os
 
 from functools import reduce
 files = ['a_example','a_test.txt', 'b_little_bit_of_everything.in', 'c_many_ingredients.in', 'd_many_pizzas.in', 'e_many_teams.in']
-files = ['b_little_bit_of_everything.in']
+files = ['a_test.txt']
 # files = files[4:]
 # files = files[:1]
 # A – Example 74 points
 # B – A little bit of everything 8,598 points
-# C – Many ingredients 612,757,485 points
+# C – Many ingredients 686663538 points
 # D – Many pizzas 5,637,787 points
 # E – Many teams 8,331,852 points
 # 626,735,796
@@ -59,7 +59,7 @@ for file in files:
         
         # if file == 'e_many_teams.in': teams = list(reversed(teams))
         if file in  ['e_many_teams.in' ]: teams = list(reversed(teams))
-        print(teams)
+        # print(teams)
         for i,team in enumerate(teams):
             p = totalPizza
             l = []
@@ -74,7 +74,7 @@ for file in files:
         # print("Unique Ingredients", len(set(uniqueIng)), firstLine)
         if file not in  ["b_little_bit_of_everything.in",'e_many_teams.in' ]: 
             possibleDelivery = list(reversed(possibleDelivery))
-        print(possibleDelivery)
+        print(possibleDelivery, sum(possibleDelivery))
         ans = "" + str(len(possibleDelivery)) + "\n"
         i = 0
         j = len(pizzas) - 1
@@ -109,7 +109,7 @@ for file in files:
             ans += "\n"
             # print(ans)
         print("Score:",file ,": ",score)
-        # print(ans)
+        print(ans)
         # data.to_html(file+".html")
         # print(data)
         with open(os.getcwd() + '\\Hash Code\\Even More Pizza\\output_' + file, "w") as f2:
