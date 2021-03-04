@@ -1,5 +1,5 @@
 # GoogleCompetitions
-<p>Repository for my Scripts in Google Competitions</p>
+<p>Repository for my Scripts in Google Competitions (<small>Some are uncompleted :</small>)</p>
 <a href='/Code Jam'>Code Jam</a><br>
 <ul>
     <li>
